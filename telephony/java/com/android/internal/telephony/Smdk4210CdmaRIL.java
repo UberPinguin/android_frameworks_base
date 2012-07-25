@@ -56,6 +56,8 @@ import com.android.internal.telephony.gsm.SuppServiceNotification;
 import com.android.internal.telephony.cdma.CdmaCallWaitingNotification;
 import com.android.internal.telephony.cdma.CdmaInformationRecords;
 
+import com.android.internal.telephony.DataConnection.FailCause;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -352,9 +354,9 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_UDUB: ret =  responseVoid(p); break;
             case RIL_REQUEST_LAST_CALL_FAIL_CAUSE: ret =  responseInts(p); break;
             case RIL_REQUEST_SIGNAL_STRENGTH: ret =  responseSignalStrength(p); break;
-            case RIL_REQUEST_VOICE_REGISTRATION_STATE: ret =  Smdk2410CdmaResponseStrings(p); break;
-            case RIL_REQUEST_DATA_REGISTRATION_STATE: ret =  Smdk2410CdmaResponseStrings(p); break;
-            case RIL_REQUEST_OPERATOR: ret =  Smdk2410CdmaResponseStrings(p); break;
+            case RIL_REQUEST_VOICE_REGISTRATION_STATE: ret =  Smdk4210CdmaResponseStrings(p); break;
+            case RIL_REQUEST_DATA_REGISTRATION_STATE: ret =  Smdk4210CdmaResponseStrings(p); break;
+            case RIL_REQUEST_OPERATOR: ret =  Smdk4210CdmaResponseStrings(p); break;
             case RIL_REQUEST_RADIO_POWER: ret =  responseVoid(p); break;
             case RIL_REQUEST_DTMF: ret =  responseVoid(p); break;
             case RIL_REQUEST_SEND_SMS: ret =  responseSMS(p); break;
@@ -392,7 +394,7 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_DATA_CALL_LIST: ret =  responseDataCallList(p); break;
             case RIL_REQUEST_RESET_RADIO: ret =  responseVoid(p); break;
             case RIL_REQUEST_OEM_HOOK_RAW: ret =  responseRaw(p); break;
-            case RIL_REQUEST_OEM_HOOK_STRINGS: ret =  Smdk2410CdmaResponseStrings(p); break;
+            case RIL_REQUEST_OEM_HOOK_STRINGS: ret =  Smdk4210CdmaResponseStrings(p); break;
             case RIL_REQUEST_SCREEN_STATE: ret =  responseVoid(p); break;
             case RIL_REQUEST_SET_SUPP_SVC_NOTIFICATION: ret =  responseVoid(p); break;
             case RIL_REQUEST_WRITE_SMS_TO_SIM: ret =  responseInts(p); break;
@@ -427,10 +429,10 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_CDMA_SET_BROADCAST_CONFIG: ret =  responseVoid(p); break;
             case RIL_REQUEST_CDMA_BROADCAST_ACTIVATION: ret =  responseVoid(p); break;
             case RIL_REQUEST_CDMA_VALIDATE_AND_WRITE_AKEY: ret =  responseVoid(p); break;
-            case RIL_REQUEST_CDMA_SUBSCRIPTION: ret =  Smdk2410CdmaResponseStrings(p); break;
+            case RIL_REQUEST_CDMA_SUBSCRIPTION: ret =  Smdk4210CdmaResponseStrings(p); break;
             case RIL_REQUEST_CDMA_WRITE_SMS_TO_RUIM: ret =  responseInts(p); break;
             case RIL_REQUEST_CDMA_DELETE_SMS_ON_RUIM: ret =  responseVoid(p); break;
-            case RIL_REQUEST_DEVICE_IDENTITY: ret =  Smdk2410CdmaResponseStrings(p); break;
+            case RIL_REQUEST_DEVICE_IDENTITY: ret =  Smdk4210CdmaResponseStrings(p); break;
             case RIL_REQUEST_GET_SMSC_ADDRESS: ret = responseString(p); break;
             case RIL_REQUEST_SET_SMSC_ADDRESS: ret = responseVoid(p); break;
             case RIL_REQUEST_EXIT_EMERGENCY_CALLBACK_MODE: ret = responseVoid(p); break;
@@ -740,9 +742,23 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
         return response;
     }
 
+
+//    protected Object
+//    responseCdmaSubscription(Parcel p) {
+//        String response[] = (String[])responseStrings(p);
+
+//        if (/* mIsSamsungCdma && */ response.length == 4) {
+            // PRL version is missing in subscription parcel, add it from properties.
+//            String prlVersion = SystemProperties.get("ril.prl_ver_1").split(":")[1];
+//            response          = new String[] {response[0], response[1], response[2],
+//                                              response[3], prlVersion};
+//        }
+//
+//        return response;
+//    }
    // @Override
     protected Object
-    Smdk2410CdmaResponseStrings(Parcel p) {
+    Smdk4210CdmaResponseStrings(Parcel p) {
         int num;
         String response[];
 
@@ -755,11 +771,116 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             for (int i = 0; i < num; i++) {
                 response[i] = p.readString();
             }
-            Log.d(LOG_TAG, "Response Array Elements Before Conversion: " + response[4] + ", " + response[5] + ", " + response[6]);
-            response[4] = Integer.toString(Integer.parseInt(response[4], 16));
-            response[5] = Integer.toString(Integer.parseInt(response[5], 16));
-            response[6] = Integer.toString(Integer.parseInt(response[6], 16));
-            Log.d(LOG_TAG, "Response Array Elements After Conversoin: " + response[4] + ", " + response[5] + ", " + response[6]);
+        }
+
+	if (response.length == 4) {
+	  // PRL version is missing in subscription parcel, add it from properties.
+	  String prlVersion = SystemProperties.get("ril.prl_ver_1").split(":")[1];
+	  response          = new String[] {response[0], response[1], response[2],
+	                                    response[3], prlVersion};
+	}
+
+	if (response.length > 6) {
+          Log.d(LOG_TAG, "Response Array Elements Before Conversion: " + response[4] + ", " + response[5] + ", " + response[6]);
+          response[4] = Integer.toString(Integer.parseInt(response[4], 16));
+	  response[5] = Integer.toString(Integer.parseInt(response[5], 16));
+	  response[6] = Integer.toString(Integer.parseInt(response[6], 16));
+	  Log.d(LOG_TAG, "Response Array Elements After Conversion: " + response[4] + ", " + response[5] + ", " + response[6]);
+	}
+        return response;
+    }
+
+    @Override
+    protected Object
+    responseSetupDataCall(Parcel p) {
+        DataCallState dataCall = new DataCallState();
+        String strings[] = (String []) responseStrings(p);
+
+        if (strings.length >= 2) {
+            dataCall.cid = Integer.parseInt(strings[0]);
+
+          // We're responsible for starting/stopping the pppd_cdma service.
+          if (!startPppdCdmaService(strings[1])) {
+	    // pppd_cdma service didn't respond timely.
+	    dataCall.status = FailCause.ERROR_UNSPECIFIED.getErrorCode();
+	    return dataCall;
+          }
+	  
+	  // pppd_cdma service responded, pull network parameters set by ip-up script.
+	  dataCall.ifname = SystemProperties.get("net.cdma.ppp.interface");
+	  String   ifprop = "net." + dataCall.ifname;
+	  
+	  dataCall.addresses = new String[] {SystemProperties.get(ifprop + ".local-ip")};
+	  dataCall.gateways  = new String[] {SystemProperties.get(ifprop + ".remote-ip")};
+	  dataCall.dnses     = new String[] {SystemProperties.get(ifprop + ".dns1"),
+	                                     SystemProperties.get(ifprop + ".dns2")};
+        } else {
+          // On rare occasion the pppd_cdma service is left active from a stale
+          // session, causing the data call setup to fail.  Make sure that pppd_cdma
+          // is stopped now, so that the next setup attempt may succeed.
+          Log.d(LOG_TAG, "Set ril.cdma.data_state=0 to make sure pppd_cdma is stopped.");
+          SystemProperties.set("ril.cdma.data_state", "0");
+
+          dataCall.status = FailCause.ERROR_UNSPECIFIED.getErrorCode(); // Who knows?
+        }
+
+        return dataCall;
+    }
+
+    private boolean startPppdCdmaService(String ttyname) {
+        SystemProperties.set("net.cdma.datalinkinterface", ttyname);
+
+        // Connecting: Set ril.cdma.data_state=1 to (re)start pppd_cdma service,
+        // which responds by setting ril.cdma.data_state=2 once connection is up.
+        SystemProperties.set("ril.cdma.data_state", "1");
+        Log.d(LOG_TAG, "Set ril.cdma.data_state=1, waiting for ril.cdma.data_state=2.");
+
+        // Typically takes < 200 ms on my Epic, so sleep in 100 ms intervals.
+        for (int i = 0; i < 10; i++) {
+            try {Thread.sleep(100);} catch (InterruptedException e) {}
+
+            if (SystemProperties.getInt("ril.cdma.data_state", 1) == 2) {
+                Log.d(LOG_TAG, "Got ril.cdma.data_state=2, connected.");
+                return true;
+            }
+        }
+
+        // Taking > 1 s here, try up to 10 s, which is hopefully long enough.
+        for (int i = 1; i < 10; i++) {
+            try {Thread.sleep(1000);} catch (InterruptedException e) {}
+
+            if (SystemProperties.getInt("ril.cdma.data_state", 1) == 2) {
+                Log.d(LOG_TAG, "Got ril.cdma.data_state=2, connected.");
+                return true;
+            }
+        }
+
+        // Disconnect: Set ril.cdma.data_state=0 to stop pppd_cdma service.
+        Log.d(LOG_TAG, "Didn't get ril.cdma.data_state=2 timely, aborting.");
+        SystemProperties.set("ril.cdma.data_state", "0");
+
+        return false;
+    }
+
+    @Override
+    public void
+    deactivateDataCall(int cid, int reason, Message result) {
+      // Disconnect: Set ril.cdma.data_state=0 to stop pppd_cdma service.
+      Log.d(LOG_TAG, "Set ril.cdma.data_state=0.");
+      SystemProperties.set("ril.cdma.data_state", "0");
+
+      super.deactivateDataCall(cid, reason, result);
+    }
+
+    protected Object
+    responseCdmaSubscription(Parcel p) {
+        String response[] = (String[])responseStrings(p);
+
+        if (/* mIsSamsungCdma && */ response.length == 4) {
+            // PRL version is missing in subscription parcel, add it from properties.
+            String prlVersion = SystemProperties.get("ril.prl_ver_1").split(":")[1];
+            response          = new String[] {response[0], response[1], response[2],
+                                              response[3], prlVersion};
         }
 
         return response;
@@ -807,18 +928,18 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
 
         //Samsung sends the count of bars that should be displayed instead of
         //a real signal strength
-        int num_bars = (response[0] & 0xff00) >> 8;
+        //int num_bars = (response[0] & 0xff00) >> 8;
 
         // Translate number of bars into something SignalStrength.java can understand
-        switch (num_bars) {
-            case 0  : response[0] = 1;     break; // map to 0 bars
-            case 1  : response[0] = 3;     break; // map to 1 bar
-            case 2  : response[0] = 5;     break; // map to 2 bars
-            case 3  : response[0] = 8;     break; // map to 3 bars
-            case 4  : response[0] = 12;    break; // map to 4 bars
-            case 5  : response[0] = 15;    break; // map to 4 bars but give an extra 10 dBm
-            default : response[0] &= 0xff; break; // no idea; just pass value through
-        }
+        //switch (num_bars) {
+        //    case 0  : response[0] = 1;     break; // map to 0 bars
+        //    case 1  : response[0] = 3;     break; // map to 1 bar
+        //    case 2  : response[0] = 5;     break; // map to 2 bars
+        //    case 3  : response[0] = 8;     break; // map to 3 bars
+        //    case 4  : response[0] = 12;    break; // map to 4 bars
+        //    case 5  : response[0] = 15;    break; // map to 4 bars but give an extra 10 dBm
+        //    default : response[0] &= 0xff; break; // no idea; just pass value through
+        //}
 
         response[1] = -1; //gsmEcio
         response[2] = (response[2] < 0)?-120:-response[2]; //cdmaDbm
