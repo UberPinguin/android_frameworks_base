@@ -354,9 +354,9 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_UDUB: ret =  responseVoid(p); break;
             case RIL_REQUEST_LAST_CALL_FAIL_CAUSE: ret =  responseInts(p); break;
             case RIL_REQUEST_SIGNAL_STRENGTH: ret =  responseSignalStrength(p); break;
-            case RIL_REQUEST_VOICE_REGISTRATION_STATE: ret =  Smdk4210CdmaResponseStrings(p); break;
-            case RIL_REQUEST_DATA_REGISTRATION_STATE: ret =  Smdk4210CdmaResponseStrings(p); break;
-            case RIL_REQUEST_OPERATOR: ret =  Smdk4210CdmaResponseStrings(p); break;
+            case RIL_REQUEST_VOICE_REGISTRATION_STATE: ret =  responseStrings(p); break;
+            case RIL_REQUEST_DATA_REGISTRATION_STATE: ret =  responseStrings(p); break;
+            case RIL_REQUEST_OPERATOR: ret =  responseStrings(p); break;
             case RIL_REQUEST_RADIO_POWER: ret =  responseVoid(p); break;
             case RIL_REQUEST_DTMF: ret =  responseVoid(p); break;
             case RIL_REQUEST_SEND_SMS: ret =  responseSMS(p); break;
@@ -394,7 +394,7 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_DATA_CALL_LIST: ret =  responseDataCallList(p); break;
             case RIL_REQUEST_RESET_RADIO: ret =  responseVoid(p); break;
             case RIL_REQUEST_OEM_HOOK_RAW: ret =  responseRaw(p); break;
-            case RIL_REQUEST_OEM_HOOK_STRINGS: ret =  Smdk4210CdmaResponseStrings(p); break;
+            case RIL_REQUEST_OEM_HOOK_STRINGS: ret =  responseStrings(p); break;
             case RIL_REQUEST_SCREEN_STATE: ret =  responseVoid(p); break;
             case RIL_REQUEST_SET_SUPP_SVC_NOTIFICATION: ret =  responseVoid(p); break;
             case RIL_REQUEST_WRITE_SMS_TO_SIM: ret =  responseInts(p); break;
@@ -429,10 +429,10 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_CDMA_SET_BROADCAST_CONFIG: ret =  responseVoid(p); break;
             case RIL_REQUEST_CDMA_BROADCAST_ACTIVATION: ret =  responseVoid(p); break;
             case RIL_REQUEST_CDMA_VALIDATE_AND_WRITE_AKEY: ret =  responseVoid(p); break;
-            case RIL_REQUEST_CDMA_SUBSCRIPTION: ret =  Smdk4210CdmaResponseStrings(p); break;
+            case RIL_REQUEST_CDMA_SUBSCRIPTION: ret =  responseStrings(p); break;
             case RIL_REQUEST_CDMA_WRITE_SMS_TO_RUIM: ret =  responseInts(p); break;
             case RIL_REQUEST_CDMA_DELETE_SMS_ON_RUIM: ret =  responseVoid(p); break;
-            case RIL_REQUEST_DEVICE_IDENTITY: ret =  Smdk4210CdmaResponseStrings(p); break;
+            case RIL_REQUEST_DEVICE_IDENTITY: ret =  responseStrings(p); break;
             case RIL_REQUEST_GET_SMSC_ADDRESS: ret = responseString(p); break;
             case RIL_REQUEST_SET_SMSC_ADDRESS: ret = responseVoid(p); break;
             case RIL_REQUEST_EXIT_EMERGENCY_CALLBACK_MODE: ret = responseVoid(p); break;
@@ -651,7 +651,7 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
 
         for (int i = 0 ; i < num ; i++) {
 
-            dc = new DriverCall();
+            dc = new Smdk4210DriverCall();
 
             dc.state = DriverCall.stateFromCLCC(p.readInt());
             Log.d(LOG_TAG, "state = " + dc.state);
@@ -756,9 +756,9 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
 //
 //        return response;
 //    }
-   // @Override
+    @Override
     protected Object
-    Smdk4210CdmaResponseStrings(Parcel p) {
+    responseStrings(Parcel p) {
         int num;
         String response[];
 
@@ -954,4 +954,27 @@ public class Smdk4210CdmaRIL extends RIL implements CommandsInterface {
 
         return response;
     }
+
+    protected class Smdk4210DriverCall extends DriverCall {
+        @Override
+        public String
+        toString() {
+            // Samsung CDMA devices' call parcel is formatted differently
+            // fake unused data for video calls, and fix formatting
+            // so that voice calls' information can be correctly parsed
+            return "id=" + index + ","
+            + state + ","
+            + "toa=" + TOA + ","
+            + (isMpty ? "conf" : "norm") + ","
+            + (isMT ? "mt" : "mo") + ","
+            + "als=" + als + ","
+            + (isVoice ? "voc" : "nonvoc") + ","
+            + "nonvid" + ","
+            + number + ","
+            + "cli=" + numberPresentation + ","
+            + "name=" + name + ","
+            + namePresentation;
+        }
+    }
+
 }
