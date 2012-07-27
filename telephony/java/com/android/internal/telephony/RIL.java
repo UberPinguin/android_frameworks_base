@@ -2487,7 +2487,7 @@ public class RIL extends BaseCommands implements CommandsInterface {
             case RIL_UNSOL_CDMA_SUBSCRIPTION_SOURCE_CHANGED: ret = responseInts(p); break;
             case RIL_UNSOL_CDMA_PRL_CHANGED: ret = responseInts(p); break;
             case RIL_UNSOL_EXIT_EMERGENCY_CALLBACK_MODE: ret = responseVoid(p); break;
-            case RIL_UNSOL_RIL_CONNECTED: ret = responseInts(p); break;
+            case RIL_UNSOL_RIL_CONNECTED: ret = responseInts(p); Log.e(LOG_TAG, "RIL_UNSOL_RIL_CONNECTED - returning responseInts(" + p + ")"); break;
             //samsung stk service implementation
             case RIL_UNSOL_STK_SEND_SMS_RESULT: ret = responseInts(p); break;
 
@@ -2829,9 +2829,13 @@ public class RIL extends BaseCommands implements CommandsInterface {
                 if (RILJ_LOGD) unsljLogRet(response, ret);
 
                 // Initial conditions
+		Log.d(LOG_TAG, " DebugRIL: setRadioPower(false, null)");
                 setRadioPower(false, null);
+		Log.d(LOG_TAG, " DebugRIL: setPreferredNetworkType(" + mPreferredNetworkType + ", null)");
                 setPreferredNetworkType(mPreferredNetworkType, null);
+		Log.d(LOG_TAG, " DebugRIL: setCdmaSubscriptionSource(" + mCdmaSubscription + ", null)");
                 setCdmaSubscriptionSource(mCdmaSubscription, null);
+		Log.d(LOG_TAG, " DebugRIL: notifyRegistrantsRilConnectionChanged(" +((int[])ret)[0] + ")");
                 notifyRegistrantsRilConnectionChanged(((int[])ret)[0]);
                 break;
             }

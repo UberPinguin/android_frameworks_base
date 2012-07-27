@@ -59,7 +59,8 @@ public class SamsungRIL extends RIL implements CommandsInterface {
 
     private boolean mSignalbarCount = SystemProperties.getInt("ro.telephony.sends_barcount", 0) == 1 ? true : false;
     private boolean mIsSamsungCdma = SystemProperties.getBoolean("ro.ril.samsung_cdma", false);
-
+    boolean RILJ_LOGV = true;
+    boolean RILJ_LOGD = true;
     public SamsungRIL(Context context, int networkMode, int cdmaSubscription) {
         super(context, networkMode, cdmaSubscription);
     }
@@ -82,7 +83,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         }
     }
 
-    @Override
+   /* @Override
     public void
     setRadioPower(boolean on, Message result) {
         RILRequest rr = RILRequest.obtain(RIL_REQUEST_RADIO_POWER, result);
@@ -98,7 +99,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
 
         if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
         send(rr);
-    }
+    }*/
 
     @Override
     protected void
@@ -363,6 +364,8 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         case RIL_UNSOL_AM: ret = responseString(p); break;
 
         default:
+	    Log.e(LOG_TAG, " SamsungRIL: Forwarding 'p' (" + p + ") to superclass processUnsolicited."); 
+	    Log.e(LOG_TAG, " SamsungRIL: response: " + response);
             // Rewind the Parcel
             p.setDataPosition(dataPosition);
 
@@ -463,7 +466,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
                 Log.e(LOG_TAG, "am " + amString + " could not be executed.");
             }
             break;
-        }
+       } 
     }
 
     @Override
@@ -583,10 +586,10 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         for (int i = 0 ; i < 7 ; i++) {
             response[i] = p.readInt();
         }
-        // SamsungRIL is a v3 RIL, fill the rest with -1
+       /* // SamsungRIL is a v3 RIL, fill the rest with -1
         for (int i = 7; i < numInts; i++) {
             response[i] = -1;
-        }
+        }*/
 
         if (mIsSamsungCdma){
             if(response[3] < 0){
@@ -643,7 +646,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         return response;
     }
 
-    @Override
+/*    @Override
     protected Object
     responseSetupDataCall(Parcel p) {
         DataCallState dataCall = new DataCallState();
@@ -688,7 +691,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         }
 
         return dataCall;
-    }
+    } */
 
     private boolean startPppdCdmaService(String ttyname) {
         SystemProperties.set("net.cdma.datalinkinterface", ttyname);
@@ -842,11 +845,11 @@ public class SamsungRIL extends RIL implements CommandsInterface {
          */
     }
 
-    @Override
+    /*@Override
     public void setPreferredNetworkType(int networkType , Message response) {
         /* Samsung modem implementation does bad things when a datacall is running
          * while switching the preferred networktype.
-         */
+         /
         ConnectivityManager cm =
             (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -857,7 +860,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         } else {
             sendPreferedNetworktype(networkType, response);
         }
-    }
+    }*/
 
 
     //Sends the real RIL request to the modem.
