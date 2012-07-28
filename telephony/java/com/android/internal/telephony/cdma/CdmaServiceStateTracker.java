@@ -282,7 +282,7 @@ public class CdmaServiceStateTracker extends ServiceStateTracker {
         case EVENT_NV_READY:
             // TODO: Consider calling setCurrentPreferredNetworkType as we do in GsmSST.
             // cm.setCurrentPreferredNetworkType();
-
+            cm.getCdmaSubscriptionSource(obtainMessage(58));
             isSubscriptionFromRuim = false;
             // For Non-RUIM phones, the subscription information is stored in
             // Non Volatile. Here when Non-Volatile is ready, we can poll the CDMA

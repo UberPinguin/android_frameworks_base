@@ -2945,17 +2945,19 @@ public class RIL extends BaseCommands implements CommandsInterface {
 
     protected Object
     responseStrings(Parcel p) {
+        Log.d(LOG_TAG, " DebugRIL: Entering responseStrings(" + p + ")");
         int num;
         String response[];
 
-        response = p.readStringArray();
-
-        if (false) {
+        //response = p.readStringArray();
+	//Log.d(LOG_TAG, " DebugRIL: responseStrings: response before processing = " + response);
+        if (true) {
             num = p.readInt();
 
             response = new String[num];
             for (int i = 0; i < num; i++) {
                 response[i] = p.readString();
+		Log.d(LOG_TAG, " DebugRIL: responseStrings: set response[" + i + "] to " + response[i]);
             }
         }
 

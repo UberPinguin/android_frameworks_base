@@ -235,6 +235,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_EXIT_EMERGENCY_CALLBACK_MODE: ret = responseVoid(p); break;
             case RIL_REQUEST_REPORT_SMS_MEMORY_STATUS: ret = responseVoid(p); break;
             case RIL_REQUEST_REPORT_STK_SERVICE_IS_RUNNING: ret = responseVoid(p); break;
+	    case RIL_REQUEST_CDMA_GET_SUBSCRIPTION_SOURCE: ret =  responseInts(p); break;
             case RIL_REQUEST_DIAL_EMERGENCY: ret = responseVoid(p); break;
             default:
                 throw new RuntimeException("Unrecognized solicited response: " + rr.mRequest);
@@ -646,19 +647,17 @@ public class SamsungRIL extends RIL implements CommandsInterface {
         return response;
     }
 
-/*    @Override
+    @Override
     protected Object
     responseSetupDataCall(Parcel p) {
         DataCallState dataCall = new DataCallState();
-        String strings[] = (String []) responseStrings(p);
+	String ttyname = SystemProperties.get("net.cdma.datalinkinterface");
 
-        if (strings.length >= 2) {
-            dataCall.cid = Integer.parseInt(strings[0]);
-
-            if (mIsSamsungCdma) {
-                // We're responsible for starting/stopping the pppd_cdma service.
-                if (!startPppdCdmaService(strings[1])) {
+        // We're responsible for starting/stopping the pppd_cdma service.
+	Log.d(LOG_TAG, " SamsungRIL: startPppdCdmaService(" + ttyname + ")");
+                if (!startPppdCdmaService(ttyname)) {
                     // pppd_cdma service didn't respond timely.
+		    Log.d(LOG_TAG, " SamsungRIL: startPppdCdmaService failed!");
                     dataCall.status = FailCause.ERROR_UNSPECIFIED.getErrorCode();
                     return dataCall;
                 }
@@ -671,14 +670,7 @@ public class SamsungRIL extends RIL implements CommandsInterface {
                 dataCall.gateways  = new String[] {SystemProperties.get(ifprop + ".remote-ip")};
                 dataCall.dnses     = new String[] {SystemProperties.get(ifprop + ".dns1"),
                                                    SystemProperties.get(ifprop + ".dns2")};
-            } else {
-                dataCall.ifname = strings[1];
-
-                if (strings.length >= 3) {
-                    dataCall.addresses = strings[2].split(" ");
-                }
-            }
-        } else {
+       /* } else {
             if (mIsSamsungCdma) {
                 // On rare occasion the pppd_cdma service is left active from a stale
                 // session, causing the data call setup to fail.  Make sure that pppd_cdma
@@ -688,12 +680,13 @@ public class SamsungRIL extends RIL implements CommandsInterface {
             }
 
             dataCall.status = FailCause.ERROR_UNSPECIFIED.getErrorCode(); // Who knows?
-        }
+        }*/
 
         return dataCall;
-    } */
+    }
 
     private boolean startPppdCdmaService(String ttyname) {
+        Log.d(LOG_TAG, " SamsungRIL: entering startPppdCdmaService");
         SystemProperties.set("net.cdma.datalinkinterface", ttyname);
 
         // Connecting: Set ril.cdma.data_state=1 to (re)start pppd_cdma service,
